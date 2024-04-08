@@ -19,7 +19,7 @@ namespace TestTask
         //IPAddress endAdress;
         //public int startAdress;
         public IPAddress? adressStart;
-        public IPAddress? subnetMask;
+        public IPAddress? inverseSubnetMask;
         public IPAddress? adressEnd;
 
         public int adressMask;
@@ -117,8 +117,8 @@ namespace TestTask
                     adressStart = IPAddress.Parse(parameters[3]);
                     //adressMask = IPAddress.Parse(parameters[4]);
                     adressMask = Int32.Parse(parameters[4]);
-                    subnetMask = IPAddress.Parse(GetDecSubNetMask(GetBinSubNetMask(adressMask)));
-                    adressEnd = GetSubnetAddress(subnetMask, adressStart);
+                    inverseSubnetMask = IPAddress.Parse(GetDecSubNetMask(GetBinInverseSubNetMask(adressMask)));
+                    adressEnd = GetSubnetAddress(inverseSubnetMask, adressStart);
                     timeStart = DateOnly.ParseExact(parameters[5], "dd.MM.yyyy", CultureInfo.InvariantCulture);
                     timeEnd = DateOnly.ParseExact(parameters[6], "dd.MM.yyyy", CultureInfo.InvariantCulture);
                 }
@@ -131,7 +131,7 @@ namespace TestTask
                 //Console.WriteLine(GetBinSubNetMask(27));
                 //Console.WriteLine(GetDecSubNetMask(GetBinSubNetMask(27)));
                 Console.WriteLine(adressStart);
-                Console.WriteLine(subnetMask);
+                Console.WriteLine(inverseSubnetMask);
                 Console.WriteLine(adressEnd);
 
             }
@@ -139,7 +139,7 @@ namespace TestTask
         }
 
 
-        static string GetBinSubNetMask(int numberOfOnes)
+        static string GetBinInverseSubNetMask(int numberOfOnes)
         {
             String mask = new String('0', numberOfOnes);
 
@@ -187,17 +187,17 @@ namespace TestTask
         }
 
 
-        static string GetHexSubNetMask(string binSubNetMask)
-        {
-            string[] subNetMask = binSubNetMask.Split('.');
+        //static string GetHexSubNetMask(string binSubNetMask)
+        //{
+        //    string[] subNetMask = binSubNetMask.Split('.');
 
-            for (int i = 0; i < subNetMask.Length; i++)
-            {
-                subNetMask[i] = Convert.ToInt32(subNetMask[i], 2).ToString("X2");
-            }
+        //    for (int i = 0; i < subNetMask.Length; i++)
+        //    {
+        //        subNetMask[i] = Convert.ToInt32(subNetMask[i], 2).ToString("X2");
+        //    }
 
-            return String.Join(".", subNetMask);
-        }
+        //    return String.Join(".", subNetMask);
+        //}
 
         //static IPAddress GetSubnetAddress(IPAddress mask, IPAddress hostIp)
         //{
