@@ -20,8 +20,9 @@ namespace TestTask
             Console.WriteLine("--12.05.2024");
             Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt--23.02.2023--12.05.2024");
             Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt_--C:\\Users\\Александр\\Desktop\\output.txt --23.02.2023 --12.05.2024");
-            Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt --7--23.02.2023 --12.05.2024");
-            Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt --7 --10 --23.02.2023 --12.05.2024");
+            Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt --196.68.1.96--23.02.2023 --12.05.2024");
+            Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt --196.68.1.96 --27 --23.02.2023 --12.05.2024");
+            //Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt --196.68.1.96 --192.168.223.141 --23.02.2023 --12.05.2024");
 
 
 
@@ -39,12 +40,6 @@ namespace TestTask
                 Show(fm);
                 fm.GetFile(fm.logPath);
                 fm.CreateFile(fm.outputPath);
-
-                //Console.WriteLine("envArgsList");
-                //for (int i = 0; i < fm.parameters.Length; i++)
-                //{
-                //    Console.WriteLine(fm.parameters[i]);
-                //}
             }
             if (envArgsList.Length < consoleArgsList.Length)
             {
@@ -65,8 +60,8 @@ namespace TestTask
             {
                 Console.WriteLine(f.logPath);
                 Console.WriteLine(f.outputPath);
-                Console.WriteLine(f.startAdress);
-                Console.WriteLine(f.endAdress);
+                Console.WriteLine(f.adressStart);
+                Console.WriteLine(f.subnetMask);
                 Console.WriteLine(f.timeStart);
                 Console.WriteLine(f.timeEnd);
             }

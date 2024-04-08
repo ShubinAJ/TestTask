@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using System.Globalization;
+using System.Buffers.Binary;
+using System.Text.RegularExpressions;
 
 namespace TestTask
 {
@@ -13,10 +15,16 @@ namespace TestTask
     {
         public string logPath;
         public string outputPath;
-        //IPAddress startAdress;
+
         //IPAddress endAdress;
-        public int startAdress;
-        public int endAdress;
+        //public int startAdress;
+        public IPAddress? adressStart;
+        public IPAddress? subnetMask;
+        public IPAddress? adressEnd;
+
+        public int adressMask;
+        //public Span<byte> endAdress;
+
         public DateOnly timeStart;
         public DateOnly timeEnd;
         public string[] parameters;
@@ -31,9 +39,6 @@ namespace TestTask
         public FileManager(string[] str)
 
         {
-            ////source = str;
-            ////parameters = source.Split("--");
-            //parameters = str.Split("--").ToArray();
             parameters = str;
 
 
@@ -57,138 +62,210 @@ namespace TestTask
             {
                 logPath = parameters[1];
                 outputPath = parameters[2];
-                timeStart = DateOnly.ParseExact(parameters[3], "dd.MM.yyyy", CultureInfo.InvariantCulture);
-                timeEnd = DateOnly.ParseExact(parameters[4], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                try
+                {
+                    timeStart = DateOnly.ParseExact(parameters[3], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                    timeEnd = DateOnly.ParseExact(parameters[4], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Некорректный формат параметра");
+                }
+
+
             }
             if (parameters.Length == 6)
             {
                 logPath = parameters[1];
                 outputPath = parameters[2];
-                startAdress = Int32.Parse(parameters[3]);
-                timeStart = DateOnly.ParseExact(parameters[4], "dd.MM.yyyy", CultureInfo.InvariantCulture);
-                timeEnd = DateOnly.ParseExact(parameters[5], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                //startAdress = Int32.Parse(parameters[3]);
+                //IPAddress.TryParse(parameters[3],out startAdress);
+
+
+                //поправить позже
+                try
+                {
+                    adressStart = IPAddress.Parse(parameters[3]);
+                    //byte[] bytesOfStartAdress = startAdress.GetAddressBytes();
+                    
+                    //foreach (byte b in bytesOfStartAdress)
+                    //{
+                    //    Console.WriteLine(b);
+                    //}
+
+                    timeStart = DateOnly.ParseExact(parameters[4], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                    timeEnd = DateOnly.ParseExact(parameters[5], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Некорректный формат параметра");
+                }
+
+
             }
             if (parameters.Length == 7)
             {
                 logPath = parameters[1];
                 outputPath = parameters[2];
-                startAdress = Int32.Parse(parameters[3]);
-                endAdress = Int32.Parse(parameters[4]);
-                timeStart = DateOnly.ParseExact(parameters[5], "dd.MM.yyyy", CultureInfo.InvariantCulture);
-                timeEnd = DateOnly.ParseExact(parameters[6], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                //startAdress = Int32.Parse(parameters[3]);
+
+                //endAdress = Int32.Parse(parameters[4]);
+                //BinaryPrimitives.WriteInt32LittleEndian(endAdress, parameters[4]);
+
+                try
+                {
+                    adressStart = IPAddress.Parse(parameters[3]);
+                    //adressMask = IPAddress.Parse(parameters[4]);
+                    adressMask = Int32.Parse(parameters[4]);
+                    subnetMask = IPAddress.Parse(GetDecSubNetMask(GetBinSubNetMask(adressMask)));
+                    adressEnd = GetSubnetAddress(subnetMask, adressStart);
+                    timeStart = DateOnly.ParseExact(parameters[5], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                    timeEnd = DateOnly.ParseExact(parameters[6], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Некорректный формат параметра");
+                }
+                //var startAdressUint32 = BitConverter.ToUInt32(IPAddress.Parse(parameters[3]).GetAddressBytes(), 0);
+                //Console.WriteLine(startAdressUint32);
+                //Console.WriteLine(GetBinSubNetMask(27));
+                //Console.WriteLine(GetDecSubNetMask(GetBinSubNetMask(27)));
+                Console.WriteLine(adressStart);
+                Console.WriteLine(subnetMask);
+                Console.WriteLine(adressEnd);
+
             }
 
         }
 
 
-        //public FileManager(StringBuilder sb)
+        static string GetBinSubNetMask(int numberOfOnes)
+        {
+            String mask = new String('0', numberOfOnes);
+
+            mask += new string('1', 32 - numberOfOnes);
+
+            int number = 0;
+            mask = Regex.Replace(mask, ".{1}", (f) => (++number % 8 == 0 && number < 32) ? f.Value + "." : f.Value);
+
+            return mask;
+        }
+
+
+        //static string GetBinSubNetMask(int numberOfOnes)
         //{
-        //    source = sb;
-        //    parameters = source.ToString().Split("--");
-        //    if (parameters.Length == 4)
+        //    String mask = new String('1', numberOfOnes);
+
+        //    mask += new string('0', 32 - numberOfOnes);
+
+        //    int number = 0;
+        //    mask = Regex.Replace(mask, ".{1}", (f) => (++number % 8 == 0 && number < 32) ? f.Value + "." : f.Value);
+
+        //    return mask;
+        //}
+
+        static string GetDecSubNetMask(string binSubNetMask)
+        {
+            string[] subNetMask = binSubNetMask.Split('.');
+
+            for (int i = 0; i < subNetMask.Length; i++)
+            {
+                subNetMask[i] = Convert.ToInt32(subNetMask[i], 2).ToString();
+            }
+
+            return String.Join(".", subNetMask);
+        }
+
+        static IPAddress GetSubnetAddress(IPAddress subnetMask, IPAddress hostIp)
+        {
+            var ipBytes = hostIp.GetAddressBytes();
+            var maskBytes = subnetMask.GetAddressBytes();
+
+            //IpV4
+            var subnetBytes = Enumerable.Range(0, 4).Select((index) => (byte)(ipBytes[index] ^ maskBytes[index])).ToArray();
+            return new IPAddress(subnetBytes);
+        }
+
+
+        static string GetHexSubNetMask(string binSubNetMask)
+        {
+            string[] subNetMask = binSubNetMask.Split('.');
+
+            for (int i = 0; i < subNetMask.Length; i++)
+            {
+                subNetMask[i] = Convert.ToInt32(subNetMask[i], 2).ToString("X2");
+            }
+
+            return String.Join(".", subNetMask);
+        }
+
+        //static IPAddress GetSubnetAddress(IPAddress mask, IPAddress hostIp)
+        //{
+        //    var ipBytes = hostIp.GetAddressBytes();
+        //    var maskBytes = mask.GetAddressBytes();
+
+        //    //IpV4
+        //    var subnetBytes = Enumerable.Range(0, 4).Select((index) => (byte)(ipBytes[index] & maskBytes[index])).ToArray();
+        //    return new IPAddress(subnetBytes);
+        //}
+
+
+        //public Dictionary<byte[], DateTime> GetIpList(string[] strList)
+        //{
+        //    int index;
+        //    string key = "";
+        //    string value = "";
+        //    Dictionary<byte[] , DateTime> ipList = new Dictionary<byte[], DateTime>();
+        //    for (int i = 0; i < strList.Length; i++)
         //    {
-        //        logPath = parameters[0];
-        //        outputPath = parameters[1];
-        //        timeStart = DateOnly.ParseExact(parameters[2], "dd.MM.yyyy", CultureInfo.InvariantCulture); 
-        //        timeEnd = DateOnly.ParseExact(parameters[3], "dd.MM.yyyy", CultureInfo.InvariantCulture); 
+        //        index = 0;
+        //        index = strList[i].IndexOf(':');
+        //        key = strList[i].Substring(0, index - 1);
+        //        value = strList[i].Substring(index + 1, strList[i].Length);
+
+
+        //        //добавить проверку
+        //        try
+        //        {
+        //            ipList.Add(IPAddress.Parse(key).GetAddressBytes(), DateTime.Parse(value));
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Console.WriteLine("Неверный формат данных внутри исходного файла");
+        //        }
         //    }
-        //    if (parameters.Length == 5)
+        //    return ipList;
+        //}
+
+
+
+
+
+
+
+
+        //public void Sort(Dictionary<byte[], DateTime> dictionary, IPAddress adressStart, IPAddress adressMask)
+        //{
+        //    if (adressStart != null && adressMask != null)
         //    {
-        //        logPath = parameters[0];
-        //        outputPath = parameters[1];
-        //        //startAdress = parameters[2];
-        //        startAdress = Int32.Parse(parameters[2]);
-        //        timeStart = DateOnly.ParseExact(parameters[3], "dd.MM.yyyy", CultureInfo.InvariantCulture);
-        //        timeEnd = DateOnly.ParseExact(parameters[4], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+        //        foreach (var dict in dictionary.Where())
+        //        {
+
+        //        }
         //    }
-        //    if (parameters.Length == 6)
+        //    if (adressStart != null & adressMask == null)
         //    {
-        //        logPath = parameters[0];
-        //        outputPath = parameters[1];
-        //        startAdress = Int32.Parse(parameters[2]);
-        //        endAdress = Int32.Parse(parameters[3]);
-        //        timeStart = DateOnly.ParseExact(parameters[4], "dd.MM.yyyy", CultureInfo.InvariantCulture);
-        //        timeEnd = DateOnly.ParseExact(parameters[5], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+
+        //    }
+        //    else
+        //    {
+
         //    }
 
         //}
 
 
-
-        
-
-
-        public bool Check (string str)
-        {
-            string source = str;
-            if (source != null) 
-            {
-                logPath = source;
-                return true;
-
-            }
-            else return false;
-        }
-
-        public string[] GetFile(string src)
-        {
-            logPath = src;
-            try
-            {
-                if (File.Exists(logPath))
-                {
-                    sourceFileArr = File.ReadAllLines(logPath);
-                    Console.WriteLine("Файл успешно считан");
-                    stage++;
-                    
-                }
-                else
-                {
-                    Console.WriteLine("Исходный файл не найден");
-                    
-                }
-
-            }
-            catch (Exception e)
-            {
-
-                //Console.WriteLine("Исходный файл не найден");
-            }
-            return sourceFileArr;
-        }
-        public string[] Sort(string[] src)
-        {
-            //this.startAdress = 
-            string[] files = new string[1];
-            return files;
-        }
-
-        //public void GetFile (string src)
-        //{
-        //    logPath = src;
-        //    try
-        //    {
-        //        if (File.Exists(logPath))
-        //        {
-        //            sourceFileArr = File.ReadAllLines(logPath);
-        //            Console.WriteLine("Файл успешно считан");
-        //            stage++;
-        //        }
-        //        else
-        //        {
-        //            Console.WriteLine("Исходный файл не найден");
-        //        }
-
-        //    }
-        //    catch (Exception e)
-        //    {
-
-        //        //Console.WriteLine("Исходный файл не найден");
-        //    }
-
-        //}
-
-        public void CreateFile (string dst)
+        public void CreateFile(string dst)
         {
             outputPath = dst;
             try
@@ -203,30 +280,40 @@ namespace TestTask
                 Console.WriteLine("Некорректный путь к файлу назначения");
             }
         }
-        public void CreateStartDate (string str)
+
+        //public string[] GetFile(string src)
+        public void GetFile(string src)
         {
+            logPath = src;
             try
             {
-                timeStart = DateOnly.ParseExact(str, "dd.MM.yyyy", CultureInfo.InvariantCulture);
-                stage++;
-            }
-            catch (Exception e) 
-            {
-                Console.WriteLine("Дата введена некорректно");
-            }
-        }
-        public void CreateEndDate(string str)
-        {
-            try
-            {
-                timeEnd = DateOnly.ParseExact(str, "dd.MM.yyyy", CultureInfo.InvariantCulture);
-                stage++;
+                if (File.Exists(logPath))
+                {
+                    sourceFileArr = File.ReadAllLines(logPath);
+                    Console.WriteLine("Файл успешно считан");
+                    stage++;
+
+                }
+                else
+                {
+                    Console.WriteLine("Исходный файл не найден");
+
+                }
+
             }
             catch (Exception e)
             {
-                Console.WriteLine("Дата введена некорректно");
+
+                Console.WriteLine("Исходный файл не найден");
             }
 
+
+
+
+
+
+            //return sourceFileArr;
         }
+
     }
 }
