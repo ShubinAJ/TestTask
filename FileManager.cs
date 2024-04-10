@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using System.Net;
-using System.Globalization;
-using System.Buffers.Binary;
 using System.Text.RegularExpressions;
 
 namespace TestTask
@@ -20,7 +13,7 @@ namespace TestTask
         //public int startAdress;
         public IPAddress? adressStart;
         public IPAddress? inverseSubnetMask;
-        public IPAddress? adressEnd;
+        public IPAddress? adressBroadcast;
 
         public int adressMask;
         //public Span<byte> endAdress;
@@ -66,6 +59,10 @@ namespace TestTask
                 {
                     timeStart = DateOnly.ParseExact(parameters[3], "dd.MM.yyyy", CultureInfo.InvariantCulture);
                     timeEnd = DateOnly.ParseExact(parameters[4], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                    //timeStart = DateOnly.ParseExact(parameters[3], "yyyy.MM.dd", CultureInfo.InvariantCulture);
+                    //timeEnd = DateOnly.ParseExact(parameters[4], "yyyy.MM.dd", CultureInfo.InvariantCulture);
+                    //timeStart = DateOnly.Parse(parameters[3], "yyyy.MM.dd");
+                    //timeEnd = DateOnly.Parse(parameters[4], "yyyy.MM.dd", CultureInfo.InvariantCulture);
                 }
                 catch (Exception e)
                 {
@@ -87,14 +84,16 @@ namespace TestTask
                 {
                     adressStart = IPAddress.Parse(parameters[3]);
                     //byte[] bytesOfStartAdress = startAdress.GetAddressBytes();
-                    
+
                     //foreach (byte b in bytesOfStartAdress)
                     //{
                     //    Console.WriteLine(b);
                     //}
 
-                    timeStart = DateOnly.ParseExact(parameters[4], "dd.MM.yyyy", CultureInfo.InvariantCulture);
-                    timeEnd = DateOnly.ParseExact(parameters[5], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                    //timeStart = DateOnly.ParseExact(parameters[4], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                    //timeEnd = DateOnly.ParseExact(parameters[5], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                    timeStart = DateOnly.ParseExact(parameters[3], "yyyy.MM.dd", CultureInfo.InvariantCulture);
+                    timeEnd = DateOnly.ParseExact(parameters[4], "yyyy.MM.dd", CultureInfo.InvariantCulture);
                 }
                 catch (Exception e)
                 {
@@ -118,9 +117,11 @@ namespace TestTask
                     //adressMask = IPAddress.Parse(parameters[4]);
                     adressMask = Int32.Parse(parameters[4]);
                     inverseSubnetMask = IPAddress.Parse(GetDecSubNetMask(GetBinInverseSubNetMask(adressMask)));
-                    adressEnd = GetSubnetAddress(inverseSubnetMask, adressStart);
+                    adressBroadcast = GetBroadcastAddress(inverseSubnetMask, adressStart);
                     timeStart = DateOnly.ParseExact(parameters[5], "dd.MM.yyyy", CultureInfo.InvariantCulture);
                     timeEnd = DateOnly.ParseExact(parameters[6], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                    //timeStart = DateOnly.ParseExact(parameters[5], "yyyy.MM.dd", CultureInfo.InvariantCulture);
+                    //timeEnd = DateOnly.ParseExact(parameters[6], "yyyy.MM.dd", CultureInfo.InvariantCulture);
                 }
                 catch (Exception e)
                 {
@@ -132,7 +133,7 @@ namespace TestTask
                 //Console.WriteLine(GetDecSubNetMask(GetBinSubNetMask(27)));
                 Console.WriteLine(adressStart);
                 Console.WriteLine(inverseSubnetMask);
-                Console.WriteLine(adressEnd);
+                Console.WriteLine(adressBroadcast);
 
             }
 
@@ -176,16 +177,138 @@ namespace TestTask
             return String.Join(".", subNetMask);
         }
 
-        static IPAddress GetSubnetAddress(IPAddress subnetMask, IPAddress hostIp)
+        static IPAddress GetBroadcastAddress(IPAddress subnetMask, IPAddress hostIp)
         {
             var ipBytes = hostIp.GetAddressBytes();
             var maskBytes = subnetMask.GetAddressBytes();
 
             //IpV4
-            var subnetBytes = Enumerable.Range(0, 4).Select((index) => (byte)(ipBytes[index] ^ maskBytes[index])).ToArray();
-            return new IPAddress(subnetBytes);
+            var broadcastBytes = Enumerable.Range(0, 4).Select((index) => (byte)(ipBytes[index] ^ maskBytes[index])).ToArray();
+            return new IPAddress(broadcastBytes);
         }
 
+
+        static bool inRange(IPAddress startIP, IPAddress brcstIP, IPAddress curIP, DateOnly startDate, DateOnly endDate, DateTime curDateTime)
+        {
+            if (startDate != null && endDate != null)
+            {
+                byte[]? lowIP = startIP.GetAddressBytes();
+                byte[]? broadcasdIP = brcstIP.GetAddressBytes();
+                byte[] currentIP = curIP.GetAddressBytes();
+                //DateOnly bufStartDate;
+                //DateOnly bufEndDate;
+                int startDateYear = 0, startDateMonth = 0, startDateDay = 0, endDateYear = 0, endDateMonth = 0, endDateDay = 0;
+                startDateYear = startDate.Year;
+                startDateMonth = startDate.Month;
+                startDateDay = startDate.Day;
+                endDateYear = endDate.Year;
+                endDateMonth = endDate.Month;
+                endDateDay = endDate.Day;
+
+                DateTime? lowDate;
+                DateTime? highDate;
+
+                //DateTime lowDate = new DateTime(startDate, new TimeOnly(0, 0, 0));
+                //DateTime highDate = new DateTime(endDate, new TimeOnly(0, 0, 0));
+
+                //DateTime lowDate = new DateTime(startDate, 0, 0, 0);
+                //DateTime highDate = new DateTime(endDate, 0, 0, 0);
+                string lowDateString = "";
+                string highDateString = "";
+
+                lowDateString += startDateYear + "-";
+                lowDateString += startDateMonth + "-";
+                lowDateString += startDateDay + " " + "00:00:00";
+                highDateString += endDateYear + "-";
+                highDateString += endDateMonth + "-";
+                highDateString += endDateDay + " " + "00:00:00";
+
+
+                //lowDate = DateTime.ParseExact(lowDateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                //highDate = DateTime.ParseExact(highDateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                lowDate = DateTime.Parse(lowDateString, CultureInfo.InvariantCulture);
+                highDate = DateTime.Parse(highDateString, CultureInfo.InvariantCulture);
+
+
+                bool result = false;
+                for (int i = 0; i < currentIP.Length; i++)
+                {
+                    if (lowIP != null & broadcasdIP != null)
+                    {
+                        if (currentIP[i] > lowIP[i] && currentIP[i] < broadcasdIP[i] && curDateTime >= lowDate && curDateTime <= highDate)
+                        {
+                            result = true;
+                        }
+                        else result = false;
+                    }
+                    if (lowIP != null & broadcasdIP == null)
+                    {
+                        if (currentIP[i] > lowIP[i] && curDateTime >= lowDate && curDateTime <= highDate)
+                        {
+                            result = true;
+                        }
+                        else result = false;
+                    }
+
+                }
+                return result;
+            }
+            else return false;
+
+
+        }
+
+        private List<string> GetIpList(string[] strList)
+        //public Dictionary<IPAddress, DateTime> GetIpList(string[] strList)
+        {
+            int index;
+            //IPAddress key;
+            //DateTime value;
+            IPAddress curIP;
+            DateTime curDateTime;
+            //Dictionary<IPAddress, DateTime> ipList = new Dictionary<IPAddress, DateTime>();
+            List<string> ipList = new List<string>();
+            for (int i = 0; i < strList.Length; i++)
+            {
+                try
+                {
+                    //string str = "";
+                    string dateString, format;
+                    //CultureInfo provider = CultureInfo.InvariantCulture;
+                    index = 0;
+                    index = strList[i].IndexOf(':');
+                    //str = strList[i].Substring(0, index - 1);
+                    //key = IPAddress.Parse(strList[i].Substring(0, index));
+                    curIP = IPAddress.Parse(strList[i].Substring(0, index));
+                    //Console.WriteLine("Остаток строки " + strList[i]);
+                    //key = IPAddress.Parse(str);
+
+
+                    //dateString = strList[i].Substring(index + 1, strList[i].Length);
+                    dateString = strList[i].Substring(index + 1, strList[i].Length - (index + 1));
+
+
+
+
+                    //format = "yyyy-MM-dd HH:mm:ss";
+                    //value = DateTime.ParseExact(dateString, format, provider);
+                    //value = DateTime.ParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                    curDateTime = DateTime.ParseExact(dateString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+
+
+                    if (inRange(adressStart, adressBroadcast, curIP, timeStart, timeEnd, curDateTime))
+                    {
+                        ipList.Add(strList[i]);
+                        Console.WriteLine("Добавлено " + strList[i]);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Неверный формат данных внутри исходного файла");
+                }
+            }
+            return ipList;
+        }
 
         //static string GetHexSubNetMask(string binSubNetMask)
         //{
@@ -209,69 +332,14 @@ namespace TestTask
         //    return new IPAddress(subnetBytes);
         //}
 
-
-        //public Dictionary<byte[], DateTime> GetIpList(string[] strList)
-        //{
-        //    int index;
-        //    string key = "";
-        //    string value = "";
-        //    Dictionary<byte[] , DateTime> ipList = new Dictionary<byte[], DateTime>();
-        //    for (int i = 0; i < strList.Length; i++)
-        //    {
-        //        index = 0;
-        //        index = strList[i].IndexOf(':');
-        //        key = strList[i].Substring(0, index - 1);
-        //        value = strList[i].Substring(index + 1, strList[i].Length);
-
-
-        //        //добавить проверку
-        //        try
-        //        {
-        //            ipList.Add(IPAddress.Parse(key).GetAddressBytes(), DateTime.Parse(value));
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            Console.WriteLine("Неверный формат данных внутри исходного файла");
-        //        }
-        //    }
-        //    return ipList;
-        //}
-
-
-
-
-
-
-
-
-        //public void Sort(Dictionary<byte[], DateTime> dictionary, IPAddress adressStart, IPAddress adressMask)
-        //{
-        //    if (adressStart != null && adressMask != null)
-        //    {
-        //        foreach (var dict in dictionary.Where())
-        //        {
-
-        //        }
-        //    }
-        //    if (adressStart != null & adressMask == null)
-        //    {
-
-        //    }
-        //    else
-        //    {
-
-        //    }
-
-        //}
-
-
         public void CreateFile(string dst)
         {
             outputPath = dst;
             try
             {
                 //sourceFileArr = File.ReadAllLines(logPath);
-                File.AppendAllLines(outputPath, sourceFileArr);
+                //File.AppendAllLines(outputPath, sourceFileArr);
+                File.AppendAllLines(outputPath, this.GetIpList(this.sourceFileArr));
                 Console.WriteLine("Файл успешно создан");
                 stage++;
             }

@@ -21,7 +21,7 @@ namespace TestTask
             Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt--23.02.2023--12.05.2024");
             Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt_--C:\\Users\\Александр\\Desktop\\output.txt --23.02.2023 --12.05.2024");
             Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt --196.68.1.96--23.02.2023 --12.05.2024");
-            Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt --196.68.1.96 --27 --23.02.2023 --12.05.2024");
+            Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt --192.164.223.69 --27 --20.03.2024 --20.05.2024");
             //Console.WriteLine("--C:\\Users\\Александр\\Desktop\\source.txt--C:\\Users\\Александр\\Desktop\\output.txt --196.68.1.96 --192.168.223.141 --23.02.2023 --12.05.2024");
 
 
@@ -61,7 +61,7 @@ namespace TestTask
                 Console.WriteLine(f.logPath);
                 Console.WriteLine(f.outputPath);
                 Console.WriteLine(f.adressStart);
-                Console.WriteLine(f.subnetMask);
+                Console.WriteLine(f.inverseSubnetMask);
                 Console.WriteLine(f.timeStart);
                 Console.WriteLine(f.timeEnd);
             }
