@@ -113,14 +113,13 @@ namespace TestTask
             var maskBytes = subnetMask.GetAddressBytes();
             //IpV4
             var broadcastBytes = Enumerable.Range(0, 4).Select((index) => (byte)(ipBytes[index] ^ maskBytes[index])).ToArray();
-            //var broadcastBytes = Enumerable.Range(0, 4).Select((index) => (byte)(ipBytes[index] & maskBytes[index])).ToArray();
             return new IPAddress(broadcastBytes);
         }
 
 
         static bool inRange(IPAddress startIP, IPAddress brcstIP, IPAddress curIP, DateOnly startDate, DateOnly endDate, DateTime curDateTime)
         {
-            if (startDate != null && endDate != null && startIP != null && brcstIP != null && startDate < endDate)
+            if (startDate != null & endDate != null & startIP != null & brcstIP != null & startDate < endDate)
             {
                 byte[]? lowIP = startIP.GetAddressBytes();
                 byte[]? broadcasdIP = brcstIP.GetAddressBytes();
@@ -152,7 +151,7 @@ namespace TestTask
                 {
                     if (lowIP != null & broadcasdIP != null)
                     {
-                        if (currentIP[i] > lowIP[i] && currentIP[i] < broadcasdIP[i] && curDateTime >= lowDate && curDateTime <= highDate)
+                        if (currentIP[i] > lowIP[i] & currentIP[i] < broadcasdIP[i] & curDateTime >= lowDate & curDateTime <= highDate)
                         {
                             result = true;
                         }
@@ -160,7 +159,7 @@ namespace TestTask
                     }
                     if (lowIP != null & broadcasdIP == null)
                     {
-                        if (currentIP[i] > lowIP[i] && curDateTime >= lowDate && curDateTime <= highDate)
+                        if (currentIP[i] > lowIP[i] & curDateTime >= lowDate & curDateTime <= highDate)
                         {
                             result = true;
                         }
@@ -170,7 +169,7 @@ namespace TestTask
                 return result;
             }
 
-            if (startDate != null && endDate != null && startIP != null && startDate < endDate)
+            if (startDate != null & endDate != null & startIP != null & startDate < endDate)
             {
                 byte[]? lowIP = startIP.GetAddressBytes();
                 byte[] currentIP = curIP.GetAddressBytes();
@@ -201,7 +200,7 @@ namespace TestTask
                 {
                     if (lowIP != null)
                     {
-                        if (currentIP[i] > lowIP[i] && curDateTime >= lowDate && curDateTime <= highDate)
+                        if (currentIP[i] > lowIP[i] & curDateTime >= lowDate & curDateTime <= highDate)
                         {
                             result = true;
                         }
@@ -211,7 +210,7 @@ namespace TestTask
                 return result;
             }
 
-            if (startDate != null && endDate != null && startDate < endDate)
+            if (startDate != null & endDate != null & startDate < endDate)
             {
                 byte[] currentIP = curIP.GetAddressBytes();
 
@@ -239,7 +238,7 @@ namespace TestTask
                 bool result = false;
                 for (int i = 0; i < currentIP.Length; i++)
                 {
-                        if (curDateTime >= lowDate && curDateTime <= highDate)
+                        if (curDateTime >= lowDate & curDateTime <= highDate)
                         {
                             result = true;
                         }
@@ -293,8 +292,8 @@ namespace TestTask
                     {
                         string dateStringIpList;
                         index = 0;
-                        index = ipList[i].IndexOf(':');
-                        ipName = ipList[i].Substring(0, index);
+                        index = ipList[j].IndexOf(':');
+                        ipName = ipList[j].Substring(0, index);
 
                         if (ipName.Equals(namesList[i]) )
                         {
@@ -307,10 +306,11 @@ namespace TestTask
                 {
                     Console.WriteLine("Неверный формат данных внутри исходного файла");
                 }
-                foreach (string s in results)
-                {
-                    Console.WriteLine("Добавлено: " + s);
-                }
+
+            }
+            foreach (string s in results)
+            {
+                Console.WriteLine("Добавлено: " + s);
             }
             return results;
         }
