@@ -21,6 +21,7 @@ namespace TestTask
         public string[] parameters;
 
         public string[] sourceFileArr;
+        Dictionary<IPAddress, DateTime> sortedDict = new Dictionary<IPAddress, DateTime>();
 
         public FileManager(string[] str)
         {
@@ -112,6 +113,7 @@ namespace TestTask
             var maskBytes = subnetMask.GetAddressBytes();
             //IpV4
             var broadcastBytes = Enumerable.Range(0, 4).Select((index) => (byte)(ipBytes[index] ^ maskBytes[index])).ToArray();
+            //var broadcastBytes = Enumerable.Range(0, 4).Select((index) => (byte)(ipBytes[index] & maskBytes[index])).ToArray();
             return new IPAddress(broadcastBytes);
         }
 
@@ -245,8 +247,6 @@ namespace TestTask
                 }
                 return result;
             }
-
-
             else return false;
         }
 
@@ -254,13 +254,17 @@ namespace TestTask
         {
             int index;
             IPAddress curIP;
+            string ipName = "";
             DateTime curDateTime;
             List<string> ipList = new List<string>();
+            List<string> namesList = new List<string>();
+            List<string> results = new List<string>();
+
             for (int i = 0; i < strList.Length; i++)
             {
                 try
                 {
-                    string dateString, format;
+                    string dateString;
                     index = 0;
                     index = strList[i].IndexOf(':');
                     curIP = IPAddress.Parse(strList[i].Substring(0, index));
@@ -269,7 +273,7 @@ namespace TestTask
                     if (inRange(adressStart, adressBroadcast, curIP, timeStart, timeEnd, curDateTime))
                     {
                         ipList.Add(strList[i]);
-                        Console.WriteLine("Добавлено " + strList[i]);
+                        namesList.Add(strList[i].Substring(0, index));              
                     }
                 }
                 catch (Exception e)
@@ -277,7 +281,38 @@ namespace TestTask
                     Console.WriteLine("Неверный формат данных внутри исходного файла");
                 }
             }
-            return ipList;
+
+            namesList = namesList.GroupBy(x => x.Substring(0, x.Length)).Select(x => x.First()).ToList();
+
+            for (int i = 0; i < namesList.Count; i++)
+            {
+                int amount = 0;
+                try
+                {
+                    for (int j = 0; j < ipList.Count; j++)
+                    {
+                        string dateStringIpList;
+                        index = 0;
+                        index = ipList[i].IndexOf(':');
+                        ipName = ipList[i].Substring(0, index);
+
+                        if (ipName.Equals(namesList[i]) )
+                        {
+                            amount++;
+                        }
+                    }
+                    results.Add(namesList[i] + ": " + amount);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Неверный формат данных внутри исходного файла");
+                }
+                foreach (string s in results)
+                {
+                    Console.WriteLine("Добавлено: " + s);
+                }
+            }
+            return results;
         }
 
         public void CreateFile(string dst)
